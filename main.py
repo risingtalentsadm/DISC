@@ -13,11 +13,13 @@ def plotar_grafico(nome_pessoa):
 
     # Inicializar variáveis para cada perfil
     total_D, total_I, total_S, total_C = 0, 0, 0, 0
+    total_respostas = 0  # Para calcular a porcentagem
 
     # Iterar sobre as colunas a partir da 5ª coluna (questões)
     for j in range(4, df.shape[1]):
         response = df.iat[index, j]
         if pd.notna(response):  # Verificar se a resposta não é NaN
+            total_respostas += float(response)
             if (j - 4) % 4 == 0:  # D
                 total_D += float(response)
             elif (j - 4) % 4 == 1:  # I
@@ -27,20 +29,39 @@ def plotar_grafico(nome_pessoa):
             elif (j - 4) % 4 == 3:  # C
                 total_C += float(response)
 
+    # Calcular porcentagens
+    if total_respostas > 0:
+        porcentagens = [
+            (total_D / 100) * 100,
+            (total_I / 100) * 100,
+            (total_S / 100) * 100,
+            (total_C / 100) * 100
+        ]
+    else:
+        porcentagens = [0, 0, 0, 0]  # Evitar divisão por zero
+
     # Criar uma lista com os totais de cada perfil
-    totals = [total_D, total_I, total_S, total_C]
     labels = ['D (Dominância)', 'I (Influência)', 'S (Estabilidade)', 'C (Conformidade)']
 
     # Plotar o gráfico de barras para o participante selecionado
     fig, ax = plt.subplots(figsize=(8, 5))
-    ax.bar(labels, totals, color=['purple', 'blue', 'green', 'orange'])
-    ax.set_title(f'Pontuação Total dos Perfis DISC - {nome_pessoa}')
+    ax.bar(labels, porcentagens, color=['purple', 'blue', 'green', 'orange'])
+    ax.set_title(f'Porcentagem dos Perfis DISC - {nome_pessoa}')
     ax.set_xlabel('Perfis DISC')
-    ax.set_ylabel('Pontuação Total')
+    ax.set_ylabel('Porcentagem (%)')
+    ax.set_ylim(0, 100)  # Definir o limite do eixo Y
     ax.grid(True, axis='y')
 
     # Mostrar o gráfico para o participante selecionado
     st.pyplot(fig)
+
+    # Criar uma tabela com as porcentagens
+    tabela_dados = pd.DataFrame({
+        'Perfil': labels,
+        'Porcentagem': porcentagens
+    })
+    st.write("### Tabela de Porcentagens")
+    st.table(tabela_dados)
 
 # Configuração da interface Streamlit
 st.title("Análise de Perfis DISC")
@@ -62,3 +83,4 @@ elif page == "Gráficos Individuais":
     # Botão para gerar o gráfico
     if st.button("Gerar Gráfico"):
         plotar_grafico(nome_selecionado)
+
